@@ -1,7 +1,6 @@
-# Rescue Rover
-'''
-1st Year Hardware Project
-Group 09 - Batch 21
-Faculty of Information Technology
+# Rescue Rover <br><br>
+
+## 1st Year Hardware Project <br>
+Group 09 - Batch 21 <br>
+Faculty of Information Technology <br>
 University of Moratuwa, Sri Lanka
-'''
