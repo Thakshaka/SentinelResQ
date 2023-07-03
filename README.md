@@ -1,4 +1,4 @@
-# Rescue Rover <br>
+# Human Rescue Rover <br>
 
 ## 1st Year Hardware Project <br>
 Group 09 - Batch 21 <br>
