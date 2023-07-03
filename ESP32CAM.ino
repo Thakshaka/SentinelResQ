@@ -71,7 +71,7 @@ Servo servo_LeftRight;
 Servo servo_UpDown;
 
 // Access Point Declaration & Configuration
-const char* ssid = "Human Rescue Rover";  // AP Name
+const char* ssid = "SentinalResQ";  // AP Name
 const char* password = "rover123"; // AP Password
 
 IPAddress local_ip(192,168,1,1);
@@ -93,7 +93,7 @@ static const char PROGMEM INDEX_HTML[] = R"rawliteral(
 
 <head>
 
-    <title>Human Rescue Rover</title>
+    <title>SentinalResQ</title>
 
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 
@@ -204,7 +204,7 @@ static const char PROGMEM INDEX_HTML[] = R"rawliteral(
 
 <body>
 
-    <h3 class="title">Human Rescue Rover</h3>
+    <h3 class="title">SentinalResQ</h3>
 
     <img src="" id="video_stream">
 
@@ -931,4 +931,3 @@ void loop() {
   delay(1000);
   readSensorData();
 }
-
