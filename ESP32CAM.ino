@@ -35,18 +35,16 @@
 
 // Gear Motors GPIO
 #define Motor_R_Dir_Pin   2
-#define Motor_R_PWM_Pin   3
+#define Motor_R_PWM_Pin   15
 #define Motor_L_Dir_Pin   13
 #define Motor_L_PWM_Pin   12
 
 // Servo Motors GPIO
-#define servo_LeftRight_Pin   14
-#define servo_UpDown_Pin      15
+#define servo_LeftRight_Pin -1
+#define servo_UpDown_Pin -2
 
 // ESP32 CAM LED GPIO
 #define LED_OnBoard 4
-
-// Variables Declaration
 
 // Setting PWM Properties For LED
 const int PWM_LED_Freq = 5000;
@@ -67,7 +65,6 @@ int servo_LeftRight_Pos = 75;
 int servo_UpDown_Pos = 75;
 
 // Initialize Servos
-
 Servo servo_Dummy_1;
 Servo servo_Dummy_2;
 Servo servo_LeftRight;
@@ -281,25 +278,31 @@ static const char PROGMEM INDEX_HTML[] = R"rawliteral(
             <tr>
                 <td>Temperature</td>
                 <td style="text-align: right;">
-                    <div id="temperature">...</div>
+                    <div id="temperature">Warming Up...</div>
                 </td>
             </tr>
             <tr>
                 <td>Humidity</td>
                 <td style="text-align: right;">
-                    <div id="humidity">...</div>
+                    <div id="humidity">Warming Up...</div>
                 </td>
             </tr>
             <tr>
-                <td>Gas</td>
+                <td>CO2</td>
                 <td style="text-align: right;">
-                    <div id="mq2">...</div>
+                    <div id="co2">Warming Up...</div>
                 </td>
             </tr>
             <tr>
-                <td>Air Quality</td>
+                <td>LPG</td>
                 <td style="text-align: right;">
-                    <div id="mq135">...</div>
+                    <div id="lpg">Warming Up...</div>
+                </td>
+            </tr>
+            <tr>
+                <td>Pressure</td>
+                <td style="text-align: right;">
+                    <div id="pressure">Warming Up...</div>
                 </td>
             </tr>
         </table>
@@ -444,7 +447,7 @@ static const char PROGMEM INDEX_HTML[] = R"rawliteral(
             xhr.send();
         }
 
-        // Function to Send Sensor Values
+        // Function to Send Sensor Data to the Web Server
         function dataCollector() {
           const url = 'http://192.168.1.1:80/data';
 
@@ -454,8 +457,9 @@ static const char PROGMEM INDEX_HTML[] = R"rawliteral(
                   .then(data => {
                       document.getElementById("temperature").innerHTML = data.sensor1;
                       document.getElementById("humidity").innerHTML = data.sensor2;
-                      document.getElementById("mq2").innerHTML = data.sensor3;
-                      document.getElementById("mq135").innerHTML = data.sensor4;
+                      document.getElementById("co2").innerHTML = data.sensor3;
+                      document.getElementById("lpg").innerHTML = data.sensor4;
+                      document.getElementById("pressure").innerHTML = data.sensor5;
                   })
                   .catch(error => {
                       console.error('Error:', error);
@@ -478,14 +482,14 @@ static esp_err_t index_handler(httpd_req_t *req){
   return httpd_resp_send(req, (const char *)INDEX_HTML, strlen(INDEX_HTML));
 }
 
-// Getting Sensor Data
+// Fetching Sensor Data
+float  sensorData1, sensorData2, sensorData3, sensorData4, sensorData5;
 
-int x1, x2, x3, x4;
-
+// Data Handler Function to be Called During GET or URI Request
 static esp_err_t data_handler(httpd_req_t *req) {
   httpd_resp_set_type(req, "application/json");
-  char responseOut[200];
-  sprintf(responseOut, "{\r\n\"sensor1\": \"%d\",\r\n\"sensor2\": \"%d\",\r\n\"sensor3\": \"%d\",\r\n\"sensor4\": \"%d\"\r\n}", x1, x2, x3, x4);
+  char responseOut[1024];
+  sprintf(responseOut, "{\r\n\"sensor1\": \"%.2f\",\r\n\"sensor2\": \"%.2f\",\r\n\"sensor3\": \"%.2f\",\r\n\"sensor4\": \"%.2f\",\r\n\"sensor5\": \"%.2f\"\r\n}", sensorData1, sensorData2, sensorData3, sensorData4, sensorData5);
   return httpd_resp_send(req, responseOut, strlen(responseOut));
 }
 
@@ -506,7 +510,7 @@ static esp_err_t stream_handler(httpd_req_t *req){
   while(true){
     fb = esp_camera_fb_get();
     if (!fb) {
-      // Serial.println("Camera capture failed (stream_handler)");
+      // Serial.println("Camera capture failed! (stream_handler)");
       res = ESP_FAIL;
     } else {
       if(fb->width > 400){
@@ -515,7 +519,7 @@ static esp_err_t stream_handler(httpd_req_t *req){
           esp_camera_fb_return(fb);
           fb = NULL;
           if(!jpeg_converted){
-            // Serial.println("JPEG compression failed");
+            // Serial.println("JPEG compression failed!");
             res = ESP_FAIL;
           }
         } else {
@@ -582,8 +586,7 @@ static esp_err_t cmd_handler(httpd_req_t *req){
  
   int res = 0;
 
-  // Serial.println();
-  // Serial.print("Incoming command : ");
+  // Serial.print("Incoming command: ");
   // Serial.println(variable);
   String getData = String(variable);
   String resultData = getValue(getData, ',', 0);
@@ -603,17 +606,16 @@ static esp_err_t cmd_handler(httpd_req_t *req){
     resultData = getValue(getData, ',', 1);
     int pwm = map(resultData.toInt(), 0, 20, 0, 255);
     ledcWrite(PWM_LED_Channel, pwm);
-    // Serial.print("PWM LED On Board : ");
+    // Serial.print("PWM LED On Board: ");
     // Serial.println(pwm);
   }
 
   // Controlling the Servo Motors with the Pan & Tilt Mount
-
   if (resultData == "SP") {
     resultData = getValue(getData, ',', 1);
     servo_LeftRight_Pos = resultData.toInt();
     servo_LeftRight.write(servo_LeftRight_Pos);
-    // Serial.print("Pan Servo Value : ");
+    // Serial.print("Pan Servo Value: ");
     // Serial.println(servo_LeftRight_Pos);
   }
 
@@ -621,7 +623,7 @@ static esp_err_t cmd_handler(httpd_req_t *req){
     resultData = getValue(getData, ',', 1);
     servo_UpDown_Pos = resultData.toInt();
     servo_UpDown.write(servo_UpDown_Pos);
-    // Serial.print("Tilt Servo Value : ");
+    // Serial.print("Tilt Servo Value: ");
     // Serial.println(servo_UpDown_Pos);
   }
 
@@ -630,8 +632,8 @@ static esp_err_t cmd_handler(httpd_req_t *req){
     resultData = getValue(getData, ',', 1);
     int pwm = map(resultData.toInt(), 0, 10, 0, 255);
     PWM_Motor_DC = pwm;
-    // Serial.print("PWM Motor DC Value : ");
-    //Serial.println(PWM_Motor_DC);
+    // Serial.print("PWM Motor DC Value: ");
+    // Serial.println(PWM_Motor_DC);
   }
 
   // Processes & Executes Commands Received From the Web Server
@@ -666,7 +668,7 @@ static esp_err_t cmd_handler(httpd_req_t *req){
       Move_Stop();
     }
 
-    // Serial.print("Button : ");
+    // Serial.print("Button: ");
     // Serial.println(resultData);
   }
   
@@ -723,11 +725,10 @@ void startCameraWebServer(){
       httpd_register_uri_handler(stream_httpd, &stream_uri);
   }
 
-  // Serial.println();
-  // Serial.println("Camera Server started successfully");
-  // Serial.print("Camera Stream Ready! Go to: http://");
+  // Serial.println("Camera Server started successfully!");
+  // Serial.print("http://");
   // Serial.println(local_ip);
-  // Serial.println();
+
 }
 
 // String Function to Process the Data Command
@@ -745,6 +746,8 @@ String getValue(String data, char separator, int index) {
   }
   return found > index ? data.substring(strIndex[0], strIndex[1]) : "";
 }
+
+// Gear Motors GPIO
 
 // Subroutine For the Rover Moves Forward
 void Move_Forward(int pwm_val) {
@@ -789,7 +792,7 @@ void Move_Stop() {
   ledcWrite(PWM_Channel_Mtr_L, 0);
 }
 
-// VOID SETUP()
+// Setup Function
 void setup() {
 
   // Disable Brownout Detector
@@ -798,9 +801,7 @@ void setup() {
   pinMode(LED_OnBoard, OUTPUT);
 
   // Setting Servos Motors
-  // Serial.println();
-  // Serial.println("----------------------------------------");
-  // Serial.println("Start Setting Servos Motors..");
+  // Serial.println("Start Setting Servos Motors...");
   servo_LeftRight.setPeriodHertz(50); // Standard 50hz Servo
   servo_UpDown.setPeriodHertz(50);    // Standard 50hz Servo
   servo_Dummy_1.attach(14, 1000, 2000);
@@ -811,9 +812,6 @@ void setup() {
   servo_LeftRight.write(servo_LeftRight_Pos);
   servo_UpDown.write(servo_UpDown_Pos);
   // Serial.println("Successfully Set Up Servo Motors!");
-  // Serial.println("----------------------------------------");
-  
-  // delay(500);
 
   // The Pin Which is Used to Set the Direction of Rotation of the Motor is Set as OUTPUT
   pinMode(Motor_R_Dir_Pin, OUTPUT);
@@ -822,28 +820,24 @@ void setup() {
   // Setting PWM
 
   // Set the PWM for the On Board LED
-  // Serial.println();
-  // Serial.println("----------------------------------------");
+
   // Serial.println("Start setting PWM for On Board LED...");
   ledcAttachPin(LED_OnBoard, PWM_LED_Channel);
   ledcSetup(PWM_LED_Channel, PWM_LED_Freq, PWM_LED_resolution);
   // Serial.println("Successfully Set Up PWM for On Board LED!");
-  // Serial.println("----------------------------------------");
+
 
   // Set the PWM for DC Motor / Motor Drive.
+
   // Serial.println("Start setting PWM for Gear Motors...");
   ledcAttachPin(Motor_R_PWM_Pin, PWM_Channel_Mtr_R);
   ledcAttachPin(Motor_L_PWM_Pin, PWM_Channel_Mtr_L);
   ledcSetup(PWM_Channel_Mtr_R, PWM_Mtr_Freq, PWM_Mtr_Resolution);
   ledcSetup(PWM_Channel_Mtr_L, PWM_Mtr_Freq, PWM_Mtr_Resolution);
   // Serial.println("Successfully Set Up PWM for Gear Motors!");
-  // Serial.println("----------------------------------------");
-
-  // delay(500);
 
   // Camera Configuration
-  // Serial.println();
-  // Serial.println("----------------------------------------");
+
   // Serial.println("Start Configuring & Initializing the Camera...");
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
@@ -884,62 +878,55 @@ void setup() {
   }
   
   // Serial.println("Configured and Initialized the Camera Successfully!");
-  // Serial.println("----------------------------------------");
-  // Serial.println();
-  /* ---------------------------------------- */
 
-  // Start Access Points Mode
-  // Serial.println();
-  // Serial.println("----------------------------------------");
+  // Start Access Point Mode
+
   // Serial.println("Starting Access Point Mode...");
   WiFi.softAP(ssid, password);
   WiFi.softAPConfig(local_ip, gateway, subnet);
   // Serial.println("Access Point Mode Started Successfully!");
-  // Serial.println("----------------------------------------");
-  // Serial.println();
 
   // Start Camera Web Server
   startCameraWebServer(); 
 
-  // Init Serial Communication Speed (Baud Rate)
+  // Initialize Serial Communication Speed (Baud Rate)
   Serial.begin(115200);
 
   while(!Serial) {
     ;
   }
-  // Serial.setDebugOutput(false);
-  // Serial.println();
 
+  // Establishing Contact With the Atmega Chip
   establishContact();
 
 }
 
 void establishContact() {
   while (Serial.available() <= 0) {
-    Serial.println("Waiting for Arduino to Send Sensor Data...");
+    Serial.println("Waiting for Atmega to Send Sensor Data...");
     delay(250);
   }
 }
 
 void readSensorData() {
   if (Serial.available()>0) {
-    String dataString = Serial.readStringUntil('\n');
+    String jsonString = Serial.readStringUntil('\n');
 
     // Create a JSON document
-    StaticJsonDocument<1024> doc;
+    StaticJsonDocument<40> jsonDoc;
 
     // Deserialize the received JSON string
-    deserializeJson(doc, dataString);
+    deserializeJson(jsonDoc, jsonString);
 
     // Extract the sensor values from the JSON object
-    x1 = doc["temperature"];
-    x2 = doc["humidity"];
-    x3 = doc["mq2"];
-    x4 = doc["mq135"];
+    sensorData1 = jsonDoc["temperature"];
+    sensorData2 = jsonDoc["humidity"];
+    sensorData3 = jsonDoc["co2"];
+    sensorData4 = jsonDoc["lpg"];
+    sensorData5 = jsonDoc["pressure"];
   }
 }
 
-// Void Loop
 void loop() {
   delay(1000);
   readSensorData();
