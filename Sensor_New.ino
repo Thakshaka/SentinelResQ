@@ -1,3 +1,4 @@
+// Including the libraries
 #include <dht.h>
 #include <MQ2.h>
 #include "MQ135.h"
@@ -5,19 +6,17 @@
 #include <Adafruit_BMP085.h>
 #include <ArduinoJson.h>
 
-// DHT22
+// Defining pins and creating objects
 #define DHT22PIN 7
 dht DHT;
 
-// MQ2
 MQ2 mq2(A0);
 
-// MQ135
 MQ135 mq135(A1);
 
-// BMP180
 Adafruit_BMP085 bmp180;
 
+// Setup function
 void setup() {
   Serial.begin(115200);
   mq2.begin();
@@ -25,9 +24,13 @@ void setup() {
   warmupSensors();
 }
 
+// Declaring variables
 float temperature, humidity, co2, lpg, pressure;
 
+// Loop function
 void loop() {
+
+  // Calling functions
   temperature = readTemperature();
   humidity = readHumidity();
   co2 = readCO2();
@@ -51,13 +54,17 @@ void loop() {
   // Print the JSON string
   Serial.println(jsonString);
 
+  // 1 second delay
   delay(1000);
 }
 
+// Function to warm up the sensors
 void warmupSensors() {
   delay(20000);
 }
 
+
+// Functions to read data from the sensors
 float readTemperature() {
   DHT.read22(DHT22PIN);
   return DHT.temperature;
