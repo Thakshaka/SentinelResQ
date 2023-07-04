@@ -21,7 +21,6 @@ void setup() {
   Serial.begin(115200);
   mq2.begin();
   bmp180.begin();
-  warmupSensors();
 }
 
 // Declaring variables
@@ -29,6 +28,8 @@ float temperature, humidity, co2, lpg, pressure;
 
 // Loop function
 void loop() {
+
+  DHT.read22(DHT22PIN);
 
   // Calling functions
   temperature = readTemperature();
@@ -48,30 +49,22 @@ void loop() {
   jsonDoc["pressure"] = pressure;
 
   // Serialize the JSON document to a string
-  String jsonString;
-  serializeJson(jsonDoc, jsonString);
+  String dataString;
+  serializeJson(jsonDoc, dataString);
 
   // Print the JSON string
-  Serial.println(jsonString);
+  Serial.println(dataString);
 
   // 1 second delay
   delay(1000);
 }
 
-// Function to warm up the sensors
-void warmupSensors() {
-  delay(20000);
-}
-
-
 // Functions to read data from the sensors
 float readTemperature() {
-  DHT.read22(DHT22PIN);
   return DHT.temperature;
 }
 
 float readHumidity() {
-  DHT.read22(DHT22PIN);
   return DHT.humidity;
 }
 
