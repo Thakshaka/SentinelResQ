@@ -7,11 +7,87 @@
 #include <ESP32Servo.h>
 #include <ArduinoJson.h>
 
-// Camera Model
+// Select Camera Model
 #define CAMERA_MODEL_AI_THINKER
 
 // GPIO of Camera Model
-#if defined(CAMERA_MODEL_AI_THINKER)
+#if defined(CAMERA_MODEL_WROVER_KIT)
+  #define PWDN_GPIO_NUM    -1
+  #define RESET_GPIO_NUM   -1
+  #define XCLK_GPIO_NUM    21
+  #define SIOD_GPIO_NUM    26
+  #define SIOC_GPIO_NUM    27
+  
+  #define Y9_GPIO_NUM      35
+  #define Y8_GPIO_NUM      34
+  #define Y7_GPIO_NUM      39
+  #define Y6_GPIO_NUM      36
+  #define Y5_GPIO_NUM      19
+  #define Y4_GPIO_NUM      18
+  #define Y3_GPIO_NUM       5
+  #define Y2_GPIO_NUM       4
+  #define VSYNC_GPIO_NUM   25
+  #define HREF_GPIO_NUM    23
+  #define PCLK_GPIO_NUM    22
+
+#elif defined(CAMERA_MODEL_M5STACK_PSRAM)
+  #define PWDN_GPIO_NUM     -1
+  #define RESET_GPIO_NUM    15
+  #define XCLK_GPIO_NUM     27
+  #define SIOD_GPIO_NUM     25
+  #define SIOC_GPIO_NUM     23
+  
+  #define Y9_GPIO_NUM       19
+  #define Y8_GPIO_NUM       36
+  #define Y7_GPIO_NUM       18
+  #define Y6_GPIO_NUM       39
+  #define Y5_GPIO_NUM        5
+  #define Y4_GPIO_NUM       34
+  #define Y3_GPIO_NUM       35
+  #define Y2_GPIO_NUM       32
+  #define VSYNC_GPIO_NUM    22
+  #define HREF_GPIO_NUM     26
+  #define PCLK_GPIO_NUM     21
+
+#elif defined(CAMERA_MODEL_M5STACK_PSRAM_B)
+  #define PWDN_GPIO_NUM     -1
+  #define RESET_GPIO_NUM    15
+  #define XCLK_GPIO_NUM     27
+  #define SIOD_GPIO_NUM     22
+  #define SIOC_GPIO_NUM     23
+  
+  #define Y9_GPIO_NUM       19
+  #define Y8_GPIO_NUM       36
+  #define Y7_GPIO_NUM       18
+  #define Y6_GPIO_NUM       39
+  #define Y5_GPIO_NUM        5
+  #define Y4_GPIO_NUM       34
+  #define Y3_GPIO_NUM       35
+  #define Y2_GPIO_NUM       32
+  #define VSYNC_GPIO_NUM    25
+  #define HREF_GPIO_NUM     26
+  #define PCLK_GPIO_NUM     21
+
+#elif defined(CAMERA_MODEL_M5STACK_WITHOUT_PSRAM)
+  #define PWDN_GPIO_NUM     -1
+  #define RESET_GPIO_NUM    15
+  #define XCLK_GPIO_NUM     27
+  #define SIOD_GPIO_NUM     25
+  #define SIOC_GPIO_NUM     23
+  
+  #define Y9_GPIO_NUM       19
+  #define Y8_GPIO_NUM       36
+  #define Y7_GPIO_NUM       18
+  #define Y6_GPIO_NUM       39
+  #define Y5_GPIO_NUM        5
+  #define Y4_GPIO_NUM       34
+  #define Y3_GPIO_NUM       35
+  #define Y2_GPIO_NUM       17
+  #define VSYNC_GPIO_NUM    22
+  #define HREF_GPIO_NUM     26
+  #define PCLK_GPIO_NUM     21
+
+#elif defined(CAMERA_MODEL_AI_THINKER)
   #define PWDN_GPIO_NUM     32
   #define RESET_GPIO_NUM    -1
   #define XCLK_GPIO_NUM      0
@@ -40,8 +116,8 @@
 #define Motor_L_PWM_Pin   12
 
 // Servo Motors GPIO
-#define servo_LeftRight_Pin -1
-#define servo_UpDown_Pin -2
+#define servo_LeftRight_Pin   14
+// #define servo_UpDown_Pin      15
 
 // ESP32 CAM LED GPIO
 #define LED_OnBoard 4
@@ -62,13 +138,13 @@ int PWM_Motor_DC = 0;
 
 // Variable For Servo Position
 int servo_LeftRight_Pos = 75;
-int servo_UpDown_Pos = 75;
+// int servo_UpDown_Pos = 75;
 
 // Initialize Servos
 Servo servo_Dummy_1;
-Servo servo_Dummy_2;
+// Servo servo_Dummy_2;
 Servo servo_LeftRight;
-Servo servo_UpDown;
+// Servo servo_UpDown;
 
 // Access Point Declaration & Configuration
 const char* ssid = "SentinalResQ";  // AP Name
@@ -510,7 +586,7 @@ static esp_err_t stream_handler(httpd_req_t *req){
   while(true){
     fb = esp_camera_fb_get();
     if (!fb) {
-      // Serial.println("Camera capture failed! (stream_handler)");
+      Serial.println("Camera capture failed! (stream_handler)");
       res = ESP_FAIL;
     } else {
       if(fb->width > 400){
@@ -519,7 +595,7 @@ static esp_err_t stream_handler(httpd_req_t *req){
           esp_camera_fb_return(fb);
           fb = NULL;
           if(!jpeg_converted){
-            // Serial.println("JPEG compression failed!");
+            Serial.println("JPEG compression failed!");
             res = ESP_FAIL;
           }
         } else {
@@ -586,8 +662,9 @@ static esp_err_t cmd_handler(httpd_req_t *req){
  
   int res = 0;
 
-  // Serial.print("Incoming command: ");
-  // Serial.println(variable);
+  Serial.println();
+  Serial.print("Incoming command: ");
+  Serial.println(variable);
   String getData = String(variable);
   String resultData = getValue(getData, ',', 0);
 
@@ -606,8 +683,8 @@ static esp_err_t cmd_handler(httpd_req_t *req){
     resultData = getValue(getData, ',', 1);
     int pwm = map(resultData.toInt(), 0, 20, 0, 255);
     ledcWrite(PWM_LED_Channel, pwm);
-    // Serial.print("PWM LED On Board: ");
-    // Serial.println(pwm);
+    Serial.print("PWM LED On Board: ");
+    Serial.println(pwm);
   }
 
   // Controlling the Servo Motors with the Pan & Tilt Mount
@@ -615,25 +692,25 @@ static esp_err_t cmd_handler(httpd_req_t *req){
     resultData = getValue(getData, ',', 1);
     servo_LeftRight_Pos = resultData.toInt();
     servo_LeftRight.write(servo_LeftRight_Pos);
-    // Serial.print("Pan Servo Value: ");
-    // Serial.println(servo_LeftRight_Pos);
+    Serial.print("Pan Servo Value: ");
+    Serial.println(servo_LeftRight_Pos);
   }
 
-  if (resultData == "ST") {
-    resultData = getValue(getData, ',', 1);
-    servo_UpDown_Pos = resultData.toInt();
-    servo_UpDown.write(servo_UpDown_Pos);
-    // Serial.print("Tilt Servo Value: ");
-    // Serial.println(servo_UpDown_Pos);
-  }
+  // if (resultData == "ST") {
+  //   resultData = getValue(getData, ',', 1);
+  //   servo_UpDown_Pos = resultData.toInt();
+  //   servo_UpDown.write(servo_UpDown_Pos);
+  //   Serial.print("Tilt Servo Value : ");
+  //   Serial.println(servo_UpDown_Pos);
+  // }
 
   // Controlling the Speed of Gear Motors with PWM
   if (resultData == "SS") {
     resultData = getValue(getData, ',', 1);
     int pwm = map(resultData.toInt(), 0, 10, 0, 255);
     PWM_Motor_DC = pwm;
-    // Serial.print("PWM Motor DC Value: ");
-    // Serial.println(PWM_Motor_DC);
+    Serial.print("PWM Motor DC Value: ");
+    Serial.println(PWM_Motor_DC);
   }
 
   // Processes & Executes Commands Received From the Web Server
@@ -668,8 +745,8 @@ static esp_err_t cmd_handler(httpd_req_t *req){
       Move_Stop();
     }
 
-    // Serial.print("Button: ");
-    // Serial.println(resultData);
+    Serial.print("Button: ");
+    Serial.println(resultData);
   }
   
   if(res){
@@ -699,17 +776,17 @@ void startCameraWebServer(){
     .user_ctx  = NULL
   };
 
-  httpd_uri_t stream_uri = {
-    .uri       = "/stream",
-    .method    = HTTP_GET,
-    .handler   = stream_handler,
-    .user_ctx  = NULL
-  };
-
   httpd_uri_t data_uri = {
     .uri  = "/data",
     .method   = HTTP_GET,
     .handler  = data_handler,
+    .user_ctx  = NULL
+  };
+    
+  httpd_uri_t stream_uri = {
+    .uri       = "/stream",
+    .method    = HTTP_GET,
+    .handler   = stream_handler,
     .user_ctx  = NULL
   };
     
@@ -725,10 +802,11 @@ void startCameraWebServer(){
       httpd_register_uri_handler(stream_httpd, &stream_uri);
   }
 
-  // Serial.println("Camera Server started successfully!");
-  // Serial.print("http://");
-  // Serial.println(local_ip);
-
+  Serial.println();
+  Serial.println("Camera Server started successfully!");
+  Serial.print("http://");
+  Serial.println(local_ip);
+  Serial.println();
 }
 
 // String Function to Process the Data Command
@@ -749,7 +827,7 @@ String getValue(String data, char separator, int index) {
 
 // Gear Motors GPIO
 
-// Subroutine For the Rover Moves Forward
+// Subroutine For the Rover Moves Forward (F)
 void Move_Forward(int pwm_val) {
   int pwm_result = 255 - pwm_val;
   digitalWrite(Motor_R_Dir_Pin, HIGH);
@@ -758,7 +836,7 @@ void Move_Forward(int pwm_val) {
   ledcWrite(PWM_Channel_Mtr_L, pwm_result);
 }
 
-// Subroutine For the Rover Moves Backward
+// Subroutine For the Rover Moves Backward (B)
 void Move_Backward(int pwm_val) {
   digitalWrite(Motor_R_Dir_Pin, LOW);
   ledcWrite(PWM_Channel_Mtr_R, pwm_val);
@@ -766,7 +844,7 @@ void Move_Backward(int pwm_val) {
   ledcWrite(PWM_Channel_Mtr_L, pwm_val);
 }
 
-// Subroutine For the Rover Turns Right (Right Rotation)
+// Subroutine For the Rover Turns Right (R)
 void Move_Right(int pwm_val) {
   int pwm_result = 255 - pwm_val;
   digitalWrite(Motor_R_Dir_Pin, LOW);
@@ -775,7 +853,7 @@ void Move_Right(int pwm_val) {
   ledcWrite(PWM_Channel_Mtr_L, pwm_result);
 }
 
-// Subroutine For the Rover Turns Left (Left Rotation)
+// Subroutine For the Rover Turns Left (L)
 void Move_Left(int pwm_val) {
   int pwm_result = 255 - pwm_val;
   digitalWrite(Motor_R_Dir_Pin, HIGH);
@@ -784,7 +862,7 @@ void Move_Left(int pwm_val) {
   ledcWrite(PWM_Channel_Mtr_L, pwm_val);
 }
 
-// Subroutine for the Rover Stops (Stops Moving)
+// Subroutine for the Rover Stops (S)
 void Move_Stop() {
   digitalWrite(Motor_R_Dir_Pin, LOW);
   ledcWrite(PWM_Channel_Mtr_R, 0);
@@ -801,44 +879,47 @@ void setup() {
   pinMode(LED_OnBoard, OUTPUT);
 
   // Setting Servos Motors
-  // Serial.println("Start Setting Servos Motors...");
-  servo_LeftRight.setPeriodHertz(50); // Standard 50hz Servo
-  servo_UpDown.setPeriodHertz(50);    // Standard 50hz Servo
+  Serial.println();
+  Serial.println("Start Setting Servos Motors...");
+  servo_LeftRight.setPeriodHertz(50); // Standard 50hz Servo 
+  // servo_UpDown.setPeriodHertz(50);    // Standard 50hz Servo
   servo_Dummy_1.attach(14, 1000, 2000);
-  servo_Dummy_2.attach(15, 1000, 2000);
+  // servo_Dummy_2.attach(15, 1000, 2000);
   servo_LeftRight.attach(servo_LeftRight_Pin, 1000, 2000);
-  servo_UpDown.attach(servo_UpDown_Pin, 1000, 2000);
+  // servo_UpDown.attach(servo_UpDown_Pin, 1000, 2000);
   
   servo_LeftRight.write(servo_LeftRight_Pos);
-  servo_UpDown.write(servo_UpDown_Pos);
-  // Serial.println("Successfully Set Up Servo Motors!");
+  // servo_UpDown.write(servo_UpDown_Pos);
+  Serial.println("Successfully Set Up Servo Motors!");
 
   // The Pin Which is Used to Set the Direction of Rotation of the Motor is Set as OUTPUT
   pinMode(Motor_R_Dir_Pin, OUTPUT);
   pinMode(Motor_L_Dir_Pin, OUTPUT);
-  
+
   // Setting PWM
 
   // Set the PWM for the On Board LED
-
-  // Serial.println("Start setting PWM for On Board LED...");
+  Serial.println();
+  Serial.println("Start setting PWM for On Board LED...");
   ledcAttachPin(LED_OnBoard, PWM_LED_Channel);
   ledcSetup(PWM_LED_Channel, PWM_LED_Freq, PWM_LED_resolution);
-  // Serial.println("Successfully Set Up PWM for On Board LED!");
-
+  Serial.println("Successfully Set Up PWM for On Board LED!");
+  Serial.println();
 
   // Set the PWM for DC Motor / Motor Drive.
-
-  // Serial.println("Start setting PWM for Gear Motors...");
+  Serial.println("Start setting PWM for Gear Motors...");
   ledcAttachPin(Motor_R_PWM_Pin, PWM_Channel_Mtr_R);
   ledcAttachPin(Motor_L_PWM_Pin, PWM_Channel_Mtr_L);
   ledcSetup(PWM_Channel_Mtr_R, PWM_Mtr_Freq, PWM_Mtr_Resolution);
   ledcSetup(PWM_Channel_Mtr_L, PWM_Mtr_Freq, PWM_Mtr_Resolution);
-  // Serial.println("Successfully Set Up PWM for Gear Motors!");
+  Serial.println("Successfully Set Up PWM for Gear Motors!");
+
+  delay(500);
 
   // Camera Configuration
 
-  // Serial.println("Start Configuring & Initializing the Camera...");
+  Serial.println();
+  Serial.println("Start Configuring & Initializing the Camera...");
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
   config.ledc_timer = LEDC_TIMER_0;
@@ -873,24 +954,29 @@ void setup() {
 
   esp_err_t err = esp_camera_init(&config);
   if (err != ESP_OK) {
-    // Serial.printf("Camera Init Failed With Error 0x%x", err);
+    Serial.printf("Camera Init Failed With Error 0x%x", err);
     ESP.restart();
   }
   
-  // Serial.println("Configured and Initialized the Camera Successfully!");
+  Serial.println("Configured and Initialized the Camera Successfully!");
+  Serial.println();
 
   // Start Access Point Mode
 
-  // Serial.println("Starting Access Point Mode...");
+  Serial.println();
+  Serial.println("Starting Access Point Mode...");
   WiFi.softAP(ssid, password);
   WiFi.softAPConfig(local_ip, gateway, subnet);
-  // Serial.println("Access Point Mode Started Successfully!");
+  Serial.println("Access Point Mode Started Successfully!");
+  Serial.println();
 
   // Start Camera Web Server
   startCameraWebServer(); 
 
   // Initialize Serial Communication Speed (Baud Rate)
   Serial.begin(115200);
+  Serial.setDebugOutput(false);
+  Serial.println();
 
   while(!Serial) {
     ;
@@ -898,7 +984,6 @@ void setup() {
 
   // Establishing Contact With the Atmega Chip
   establishContact();
-
 }
 
 void establishContact() {
@@ -913,7 +998,7 @@ void readSensorData() {
     String jsonString = Serial.readStringUntil('\n');
 
     // Create a JSON document
-    StaticJsonDocument<40> jsonDoc;
+    StaticJsonDocument<1024> jsonDoc;
 
     // Deserialize the received JSON string
     deserializeJson(jsonDoc, jsonString);
