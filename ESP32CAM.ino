@@ -334,15 +334,15 @@ static const char PROGMEM INDEX_HTML[] = R"rawliteral(
             <td style="text-align:right;" id="slider_Pan_id">NN</td>
         </tr>
 
-        <tr>
-            <td>Tilt</td>
-            <td>
-                <div class="slidecontainer">
-                    <input type="range" min="0" max="180" value="75" class="slider" id="mySlider_Tilt">
-                </div>
-            </td>
-            <td style="text-align:right;" id="slider_Tilt_id">NN</td>
-        </tr>
+        // <tr>
+        //     <td>Tilt</td>
+        //     <td>
+        //         <div class="slidecontainer">
+        //             <input type="range" min="0" max="180" value="75" class="slider" id="mySlider_Tilt">
+        //         </div>
+        //     </td>
+        //     <td style="text-align:right;" id="slider_Tilt_id">NN</td>
+        // </tr>
     </table>
 
     <br>
