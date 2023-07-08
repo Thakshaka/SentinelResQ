@@ -117,7 +117,6 @@
 
 // Servo Motors GPIO
 #define servo_LeftRight_Pin   14
-// #define servo_UpDown_Pin      15
 
 // ESP32 CAM LED GPIO
 #define LED_OnBoard 4
@@ -138,13 +137,11 @@ int PWM_Motor_DC = 0;
 
 // Variable For Servo Position
 int servo_LeftRight_Pos = 75;
-// int servo_UpDown_Pos = 75;
 
 // Initialize Servos
-Servo servo_Dummy_1;
-// Servo servo_Dummy_2;
-Servo servo_LeftRight;
-// Servo servo_UpDown;
+Servo servo_temp_1; // Timer 0 or Channel 0
+Servo servo_temp_2; // Timer 1 or Channel 1
+Servo servo_LeftRight; // Timer 2 or Channel 2
 
 // Access Point Declaration & Configuration
 const char* ssid = "SentinalResQ";  // AP Name
@@ -289,16 +286,16 @@ static const char PROGMEM INDEX_HTML[] = R"rawliteral(
     <div>
         <!-- "T" and "M" suffixes are used to differentiate between touch screen input and mouse pointer input on buttons -->
         <button class="button" ontouchstart="button_ontouchstart_handle('FT')" ontouchend="button_ontouchend_handle()"
-            onmousedown="button_onmousedown_handle('FM')" onmouseup="button_onmouseup_handle()"><b>&#9650;</b></button>
+            onmousedown="button_onmousedown_handle('FM')" onmouseup="button_onmouseup_handle()" accesskey="w"><b>&#9650;</b></button>
         <br><br>
         <button class="button" ontouchstart="button_ontouchstart_handle('LT')" ontouchend="button_ontouchend_handle()"
-            onmousedown="button_onmousedown_handle('LM')" onmouseup="button_onmouseup_handle()"><b>&#9664;</b></button>
+            onmousedown="button_onmousedown_handle('LM')" onmouseup="button_onmouseup_handle()" accesskey="a"><b>&#9664;</b></button>
         <div class="space"></div>
         <button class="button" ontouchstart="button_ontouchstart_handle('RT')" ontouchend="button_ontouchend_handle()"
-            onmousedown="button_onmousedown_handle('RM')" onmouseup="button_onmouseup_handle()"><b>&#9654;</b></button>
+            onmousedown="button_onmousedown_handle('RM')" onmouseup="button_onmouseup_handle()" accesskey="d"><b>&#9654;</b></button>
         <br><br>
         <button class="button" ontouchstart="button_ontouchstart_handle('BT')" ontouchend="button_ontouchend_handle()"
-            onmousedown="button_onmousedown_handle('BM')" onmouseup="button_onmouseup_handle()"><b>&#9660;</b></button>
+            onmousedown="button_onmousedown_handle('BM')" onmouseup="button_onmouseup_handle()" accesskey="s"><b>&#9660;</b></button>
     </div>
 
     <br>
@@ -333,16 +330,6 @@ static const char PROGMEM INDEX_HTML[] = R"rawliteral(
             </td>
             <td style="text-align:right;" id="slider_Pan_id">NN</td>
         </tr>
-
-        // <tr>
-        //     <td>Tilt</td>
-        //     <td>
-        //         <div class="slidecontainer">
-        //             <input type="range" min="0" max="180" value="75" class="slider" id="mySlider_Tilt">
-        //         </div>
-        //     </td>
-        //     <td style="text-align:right;" id="slider_Tilt_id">NN</td>
-        // </tr>
     </table>
 
     <br>
@@ -401,19 +388,15 @@ static const char PROGMEM INDEX_HTML[] = R"rawliteral(
         var show_slider_Pan = document.getElementById("slider_Pan_id")
         show_slider_Pan.innerHTML = slider_Pan.value;
 
-        var slider_Tilt = document.getElementById("mySlider_Tilt");
-        var show_slider_Tilt = document.getElementById("slider_Tilt_id")
-        show_slider_Tilt.innerHTML = slider_Tilt.value;
-
-        let slider_PanTilt_send_rslt = "";
+        let slider_Pan_send_rslt = "";
 
         var myTmr;
         var myTmr_Interval = 500;
 
-        var myTmr_PanTiltCtr;
-        var myTmr_PanTiltCtr_Interval = 200;
-        var myTmr_PanTiltCtr_Start = 1;
-        var myTmr_PanTiltCtr_Send = 0;
+        var myTmr_PanCtr;
+        var myTmr_PanCtr_Interval = 200;
+        var myTmr_PanCtr_Start = 1;
+        var myTmr_PanCtr_Send = 0;
 
         var onmousedown_stat = 0;
 
@@ -436,31 +419,16 @@ static const char PROGMEM INDEX_HTML[] = R"rawliteral(
         slider_Pan.oninput = function () {
             show_slider_Pan.innerHTML = slider_Pan.value;
             let slider_Pan_send = "SP," + slider_Pan.value;
-            slider_PanTilt_send_rslt = slider_Pan_send;
-            myTmr_PanTiltCtr_Send = 1;
-            if (myTmr_PanTiltCtr_Start == 1) {
-                myTmr_PanTiltCtr = setInterval(myTimer_PanTiltCtr, myTmr_PanTiltCtr_Interval);
-                myTmr_PanTiltCtr_Start = 0;
+            slider_Pan_send_rslt = slider_Pan_send;
+            myTmr_PanCtr_Send = 1;
+            if (myTmr_PanCtr_Start == 1) {
+                myTmr_PanCtr = setInterval(myTimer_PanCtr, myTmr_PanCtr_Interval);
+                myTmr_PanCtr_Start = 0;
             }
         }
 
         slider_Pan.onchange = function () {
-            myTmr_PanTiltCtr_Start = 1;
-        }
-
-        slider_Tilt.oninput = function () {
-            show_slider_Tilt.innerHTML = slider_Tilt.value;
-            let slider_Tilt_send = "ST," + slider_Tilt.value;
-            slider_PanTilt_send_rslt = slider_Tilt_send;
-            myTmr_PanTiltCtr_Send = 1;
-            if (myTmr_PanTiltCtr_Start == 1) {
-                myTmr_PanTiltCtr = setInterval(myTimer_PanTiltCtr, myTmr_PanTiltCtr_Interval);
-                myTmr_PanTiltCtr_Start = 0;
-            }
-        }
-
-        slider_Tilt.onchange = function () {
-            myTmr_PanTiltCtr_Start = 1;
+            myTmr_PanCtr_Start = 1;
         }
 
         function button_onmousedown_handle(cmds) {
@@ -504,11 +472,11 @@ static const char PROGMEM INDEX_HTML[] = R"rawliteral(
             clearInterval(myTmr);
         }
 
-        function myTimer_PanTiltCtr() {
-            if (myTmr_PanTiltCtr_Send == 1) {
-                send_cmd(slider_PanTilt_send_rslt);
-                if (myTmr_PanTiltCtr_Start == 1) clearInterval(myTmr_PanTiltCtr);
-                myTmr_PanTiltCtr_Send = 0;
+        function myTimer_PanCtr() {
+            if (myTmr_PanCtr_Send == 1) {
+                send_cmd(slider_Pan_send_rslt);
+                if (myTmr_PanCtr_Start == 1) clearInterval(myTmr_PanCtr);
+                myTmr_PanCtr_Send = 0;
             }
         }
 
@@ -586,7 +554,7 @@ static esp_err_t stream_handler(httpd_req_t *req){
   while(true){
     fb = esp_camera_fb_get();
     if (!fb) {
-      Serial.println("Camera capture failed! (stream_handler)");
+      // Serial.println("Camera capture failed! (stream_handler)");
       res = ESP_FAIL;
     } else {
       if(fb->width > 400){
@@ -595,7 +563,7 @@ static esp_err_t stream_handler(httpd_req_t *req){
           esp_camera_fb_return(fb);
           fb = NULL;
           if(!jpeg_converted){
-            Serial.println("JPEG compression failed!");
+            // Serial.println("JPEG compression failed!");
             res = ESP_FAIL;
           }
         } else {
@@ -662,9 +630,9 @@ static esp_err_t cmd_handler(httpd_req_t *req){
  
   int res = 0;
 
-  Serial.println();
-  Serial.print("Incoming command: ");
-  Serial.println(variable);
+  // Serial.println();
+  // Serial.print("Incoming command: ");
+  // Serial.println(variable);
   String getData = String(variable);
   String resultData = getValue(getData, ',', 0);
 
@@ -683,34 +651,26 @@ static esp_err_t cmd_handler(httpd_req_t *req){
     resultData = getValue(getData, ',', 1);
     int pwm = map(resultData.toInt(), 0, 20, 0, 255);
     ledcWrite(PWM_LED_Channel, pwm);
-    Serial.print("PWM LED On Board: ");
-    Serial.println(pwm);
+    // Serial.print("PWM LED On Board: ");
+    // Serial.println(pwm);
   }
 
-  // Controlling the Servo Motors with the Pan & Tilt Mount
+  // Controlling the Servo Motors with the Pan Mount
   if (resultData == "SP") {
     resultData = getValue(getData, ',', 1);
     servo_LeftRight_Pos = resultData.toInt();
     servo_LeftRight.write(servo_LeftRight_Pos);
-    Serial.print("Pan Servo Value: ");
-    Serial.println(servo_LeftRight_Pos);
+    // Serial.print("Pan Servo Value: ");
+    // Serial.println(servo_LeftRight_Pos);
   }
-
-  // if (resultData == "ST") {
-  //   resultData = getValue(getData, ',', 1);
-  //   servo_UpDown_Pos = resultData.toInt();
-  //   servo_UpDown.write(servo_UpDown_Pos);
-  //   Serial.print("Tilt Servo Value : ");
-  //   Serial.println(servo_UpDown_Pos);
-  // }
 
   // Controlling the Speed of Gear Motors with PWM
   if (resultData == "SS") {
     resultData = getValue(getData, ',', 1);
     int pwm = map(resultData.toInt(), 0, 10, 0, 255);
     PWM_Motor_DC = pwm;
-    Serial.print("PWM Motor DC Value: ");
-    Serial.println(PWM_Motor_DC);
+    // Serial.print("PWM Motor DC Value: ");
+    // Serial.println(PWM_Motor_DC);
   }
 
   // Processes & Executes Commands Received From the Web Server
@@ -745,8 +705,8 @@ static esp_err_t cmd_handler(httpd_req_t *req){
       Move_Stop();
     }
 
-    Serial.print("Button: ");
-    Serial.println(resultData);
+    // Serial.print("Button: ");
+    // Serial.println(resultData);
   }
   
   if(res){
@@ -802,11 +762,11 @@ void startCameraWebServer(){
       httpd_register_uri_handler(stream_httpd, &stream_uri);
   }
 
-  Serial.println();
-  Serial.println("Camera Server started successfully!");
-  Serial.print("http://");
-  Serial.println(local_ip);
-  Serial.println();
+  // Serial.println();
+  // Serial.println("Camera Server started successfully!");
+  // Serial.print("http://");
+  // Serial.println(local_ip);
+  // Serial.println();
 }
 
 // String Function to Process the Data Command
@@ -879,18 +839,17 @@ void setup() {
   pinMode(LED_OnBoard, OUTPUT);
 
   // Setting Servos Motors
-  Serial.println();
-  Serial.println("Start Setting Servos Motors...");
+  // Serial.println();
+  // Serial.println("Start Setting Servos Motors...");
   servo_LeftRight.setPeriodHertz(50); // Standard 50hz Servo 
-  // servo_UpDown.setPeriodHertz(50);    // Standard 50hz Servo
-  servo_Dummy_1.attach(14, 1000, 2000);
-  // servo_Dummy_2.attach(15, 1000, 2000);
+  servo_temp_1.attach(-1, 1000, 2000);
+  servo_temp_2.attach(-2, 1000, 2000);
   servo_LeftRight.attach(servo_LeftRight_Pin, 1000, 2000);
-  // servo_UpDown.attach(servo_UpDown_Pin, 1000, 2000);
   
   servo_LeftRight.write(servo_LeftRight_Pos);
-  // servo_UpDown.write(servo_UpDown_Pos);
-  Serial.println("Successfully Set Up Servo Motors!");
+  // Serial.println("Successfully Set Up Servo Motors!");
+
+  delay(500);
 
   // The Pin Which is Used to Set the Direction of Rotation of the Motor is Set as OUTPUT
   pinMode(Motor_R_Dir_Pin, OUTPUT);
@@ -899,27 +858,27 @@ void setup() {
   // Setting PWM
 
   // Set the PWM for the On Board LED
-  Serial.println();
-  Serial.println("Start setting PWM for On Board LED...");
+  // Serial.println();
+  // Serial.println("Start setting PWM for On Board LED...");
   ledcAttachPin(LED_OnBoard, PWM_LED_Channel);
   ledcSetup(PWM_LED_Channel, PWM_LED_Freq, PWM_LED_resolution);
-  Serial.println("Successfully Set Up PWM for On Board LED!");
-  Serial.println();
+  // Serial.println("Successfully Set Up PWM for On Board LED!");
+  // Serial.println();
 
   // Set the PWM for DC Motor / Motor Drive.
-  Serial.println("Start setting PWM for Gear Motors...");
+  // Serial.println("Start setting PWM for Gear Motors...");
   ledcAttachPin(Motor_R_PWM_Pin, PWM_Channel_Mtr_R);
   ledcAttachPin(Motor_L_PWM_Pin, PWM_Channel_Mtr_L);
   ledcSetup(PWM_Channel_Mtr_R, PWM_Mtr_Freq, PWM_Mtr_Resolution);
   ledcSetup(PWM_Channel_Mtr_L, PWM_Mtr_Freq, PWM_Mtr_Resolution);
-  Serial.println("Successfully Set Up PWM for Gear Motors!");
+  // Serial.println("Successfully Set Up PWM for Gear Motors!");
 
   delay(500);
 
   // Camera Configuration
 
-  Serial.println();
-  Serial.println("Start Configuring & Initializing the Camera...");
+  // Serial.println();
+  // Serial.println("Start Configuring & Initializing the Camera...");
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
   config.ledc_timer = LEDC_TIMER_0;
@@ -954,21 +913,21 @@ void setup() {
 
   esp_err_t err = esp_camera_init(&config);
   if (err != ESP_OK) {
-    Serial.printf("Camera Init Failed With Error 0x%x", err);
+    // Serial.printf("Camera Init Failed With Error 0x%x", err);
     ESP.restart();
   }
   
-  Serial.println("Configured and Initialized the Camera Successfully!");
-  Serial.println();
+  // Serial.println("Configured and Initialized the Camera Successfully!");
+  // Serial.println();
 
   // Start Access Point Mode
 
-  Serial.println();
-  Serial.println("Starting Access Point Mode...");
+  // Serial.println();
+  // Serial.println("Starting Access Point Mode...");
   WiFi.softAP(ssid, password);
   WiFi.softAPConfig(local_ip, gateway, subnet);
-  Serial.println("Access Point Mode Started Successfully!");
-  Serial.println();
+  // Serial.println("Access Point Mode Started Successfully!");
+  // Serial.println();
 
   // Start Camera Web Server
   startCameraWebServer(); 
@@ -976,7 +935,7 @@ void setup() {
   // Initialize Serial Communication Speed (Baud Rate)
   Serial.begin(115200);
   Serial.setDebugOutput(false);
-  Serial.println();
+  // Serial.println();
 
   while(!Serial) {
     ;
