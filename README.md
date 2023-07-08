@@ -1,4 +1,4 @@
-# Human Rescue Rover <br>
+# SentinalResQ <br>
 
 ## 1st Year Hardware Project <br>
 Group 09 - Batch 21 <br>
