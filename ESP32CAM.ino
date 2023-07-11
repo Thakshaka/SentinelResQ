@@ -303,7 +303,6 @@ static const char PROGMEM INDEX_HTML[] = R"rawliteral(
         var slider_pwm_Speed = document.getElementById("mySlider_pwm_Speed");
         var show_slider_pwm_Speed = document.getElementById("slider_pwm_Speed_id")
         show_slider_pwm_Speed.innerHTML = slider_pwm_Speed.value;
-        send_cmd("SS," + slider_pwm_Speed.value);
 
         var slider_pwm_LED = document.getElementById("mySlider_pwm_LED");
         var show_slider_pwm_LED = document.getElementById("slider_pwm_LED_id")
