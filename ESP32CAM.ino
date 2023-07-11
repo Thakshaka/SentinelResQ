@@ -211,16 +211,16 @@ static const char PROGMEM INDEX_HTML[] = R"rawliteral(
     <div>
         <!-- "T" and "M" suffixes are used to differentiate between touch screen input and mouse pointer input on buttons -->
         <button class="button" ontouchstart="button_ontouchstart_handle('FT')" ontouchend="button_ontouchend_handle()"
-            onmousedown="button_onmousedown_handle('FM')" onmouseup="button_onmouseup_handle()" accesskey="w"><b>&#9650;</b></button>
+            onmousedown="button_onmousedown_handle('FM')" onmouseup="button_onmouseup_handle()"><b>&#9650;</b></button>
         <br><br>
         <button class="button" ontouchstart="button_ontouchstart_handle('LT')" ontouchend="button_ontouchend_handle()"
-            onmousedown="button_onmousedown_handle('LM')" onmouseup="button_onmouseup_handle()" accesskey="a"><b>&#9664;</b></button>
+            onmousedown="button_onmousedown_handle('LM')" onmouseup="button_onmouseup_handle()"><b>&#9664;</b></button>
         <div class="space"></div>
         <button class="button" ontouchstart="button_ontouchstart_handle('RT')" ontouchend="button_ontouchend_handle()"
-            onmousedown="button_onmousedown_handle('RM')" onmouseup="button_onmouseup_handle()" accesskey="d"><b>&#9654;</b></button>
+            onmousedown="button_onmousedown_handle('RM')" onmouseup="button_onmouseup_handle()"><b>&#9654;</b></button>
         <br><br>
         <button class="button" ontouchstart="button_ontouchstart_handle('BT')" ontouchend="button_ontouchend_handle()"
-            onmousedown="button_onmousedown_handle('BM')" onmouseup="button_onmouseup_handle()" accesskey="s"><b>&#9660;</b></button>
+            onmousedown="button_onmousedown_handle('BM')" onmouseup="button_onmouseup_handle()"><b>&#9660;</b></button>
     </div>
 
     <br>
