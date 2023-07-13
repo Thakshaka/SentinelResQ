@@ -415,7 +415,7 @@ static const char PROGMEM INDEX_HTML[] = R"rawliteral(
             xhr.send();
         }
 
-        // Function to Send Sensor Data to the Web Server
+        // Function to Receive Sensor Data from the Web Server
         function dataCollector() {
           const url = 'http://192.168.1.1:80/data';
 
