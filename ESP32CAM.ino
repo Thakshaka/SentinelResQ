@@ -264,31 +264,31 @@ static const char PROGMEM INDEX_HTML[] = R"rawliteral(
     <div>
         <table style="width:320px;margin:auto;table-layout:fixed;background-color: #3f3a957a;border-radius: 2%;" CELLSPACING=10>
             <tr>
-                <td>Temperature</td>
+                <td>Temperature (C)</td>
                 <td style="text-align: right;">
                     <div id="temperature">Warming Up...</div>
                 </td>
             </tr>
             <tr>
-                <td>Humidity</td>
+                <td>Humidity (RH)</td>
                 <td style="text-align: right;">
                     <div id="humidity">Warming Up...</div>
                 </td>
             </tr>
             <tr>
-                <td>CO2</td>
+                <td>CO2 (PPM)</td>
                 <td style="text-align: right;">
                     <div id="co2">Warming Up...</div>
                 </td>
             </tr>
             <tr>
-                <td>LPG</td>
+                <td>LPG (PPM)</td>
                 <td style="text-align: right;">
                     <div id="lpg">Warming Up...</div>
                 </td>
             </tr>
             <tr>
-                <td>Pressure</td>
+                <td>Pressure (Pa)</td>
                 <td style="text-align: right;">
                     <div id="pressure">Warming Up...</div>
                 </td>
