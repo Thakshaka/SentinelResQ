@@ -1,0 +1,355 @@
+<html>
+
+<head>
+
+    <title>SentinalResQ</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #212427;
+            color: white;
+            font-family: sans-serif;
+            text-align: center;
+            padding-top: 20px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .title {
+            font-size: 30px;
+        }
+
+        .slidecontainer {
+            width: 100%;
+        }
+
+        .slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 10px;
+            border-radius: 5px;
+            background: #333333;
+            outline: none;
+            opacity: 0.6;
+            -webkit-transition: .2s;
+            transition: opacity .2s;
+        }
+
+        .slider:hover {
+            opacity: 1;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #04AA6D;
+            cursor: pointer;
+        }
+
+        .slider::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #04AA6D;
+            cursor: pointer;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 5px;
+            font-size: 25px;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            outline: none;
+            color: white;
+            background-color: #4CAF50;
+            border: none;
+            border-radius: 15px;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            width: 20%;
+            height: 40px;
+        }
+
+        .button:hover {
+            background-color: #3E8E41;
+        }
+
+        .button:active {
+            background-color: #3E8E41;
+            box-shadow: 0 0px #666666;
+            transform: translateY(2px);
+        }
+
+        .space {
+            width: 15%;
+            height: auto;
+            display: inline-block;
+        }
+
+        img {
+            width: 320px;
+            height: 240px;
+            border-radius: 1rem;
+            border: 1px solid white;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <h3 class="title">SentinalResQ</h3>
+
+    <img src="" id="video_stream">
+
+    <br><br>
+
+    <div>
+        <!-- "T" and "M" suffixes are used to differentiate between touch screen input and mouse pointer input on buttons -->
+        <button class="button" ontouchstart="button_ontouchstart_handle('FT')" ontouchend="button_ontouchend_handle()"
+            onmousedown="button_onmousedown_handle('FM')" onmouseup="button_onmouseup_handle()"><b>&#9650;</b></button>
+        <br><br>
+        <button class="button" ontouchstart="button_ontouchstart_handle('LT')" ontouchend="button_ontouchend_handle()"
+            onmousedown="button_onmousedown_handle('LM')" onmouseup="button_onmouseup_handle()"><b>&#9664;</b></button>
+        <div class="space"></div>
+        <button class="button" ontouchstart="button_ontouchstart_handle('RT')" ontouchend="button_ontouchend_handle()"
+            onmousedown="button_onmousedown_handle('RM')" onmouseup="button_onmouseup_handle()"><b>&#9654;</b></button>
+        <br><br>
+        <button class="button" ontouchstart="button_ontouchstart_handle('BT')" ontouchend="button_ontouchend_handle()"
+            onmousedown="button_onmousedown_handle('BM')" onmouseup="button_onmouseup_handle()"><b>&#9660;</b></button>
+    </div>
+
+    <br>
+
+    <table style="width:320px;margin:auto;table-layout:fixed" CELLSPACING=10>
+        <tr>
+            <td style="text-align:left;width:50px;">Speed</td>
+            <td style="width:200px;">
+                <div class="slidecontainer">
+                    <input type="range" min="0" max="10" value="5" class="slider" id="mySlider_pwm_Speed">
+                </div>
+            </td>
+            <td style="text-align:right;font-weight:normal;width:20px;" id="slider_pwm_Speed_id">NN</td>
+        </tr>
+
+        <tr>
+            <td>Light</td>
+            <td>
+                <div class="slidecontainer">
+                    <input type="range" min="0" max="10" value="0" class="slider" id="mySlider_pwm_LED">
+                </div>
+            </td>
+            <td style="text-align:right;" id="slider_pwm_LED_id">NN</td>
+        </tr>
+
+        <tr>
+            <td>Pan</td>
+            <td>
+                <div class="slidecontainer">
+                    <input type="range" min="0" max="180" value="75" class="slider" id="mySlider_Pan">
+                </div>
+            </td>
+            <td style="text-align:right;" id="slider_Pan_id">NN</td>
+        </tr>
+    </table>
+
+    <br>
+
+  <!-- Display Sensor Values -->
+
+    <div>
+        <table style="width:320px;margin:auto;table-layout:fixed;background-color: #3f3a957a;border-radius: 2%;" CELLSPACING=10>
+            <tr>
+                <td>Temperature (°C)</td>
+                <td style="text-align: right;">
+                    <div id="temperature">Warming Up...</div>
+                </td>
+            </tr>
+            <tr>
+                <td>Humidity (RH)</td>
+                <td style="text-align: right;">
+                    <div id="humidity">Warming Up...</div>
+                </td>
+            </tr>
+            <tr>
+                <td>CO2 (PPM)</td>
+                <td style="text-align: right;">
+                    <div id="co2">Warming Up...</div>
+                </td>
+            </tr>
+            <tr>
+                <td>LPG (PPM)</td>
+                <td style="text-align: right;">
+                    <div id="lpg">Warming Up...</div>
+                </td>
+            </tr>
+            <tr>
+                <td>Pressure (Pa)</td>
+                <td style="text-align: right;">
+                    <div id="pressure">Warming Up...</div>
+                </td>
+            </tr>
+        </table>
+        <br>
+    </div>
+
+    <script>
+        window.onload = document.getElementById("video_stream").src = window.location.href.slice(0, -1) + ":81/stream";
+
+        var slider_pwm_Speed = document.getElementById("mySlider_pwm_Speed");
+        var show_slider_pwm_Speed = document.getElementById("slider_pwm_Speed_id")
+        show_slider_pwm_Speed.innerHTML = slider_pwm_Speed.value;
+
+        var slider_pwm_LED = document.getElementById("mySlider_pwm_LED");
+        var show_slider_pwm_LED = document.getElementById("slider_pwm_LED_id")
+        show_slider_pwm_LED.innerHTML = slider_pwm_LED.value;
+
+        var slider_Pan = document.getElementById("mySlider_Pan");
+        var show_slider_Pan = document.getElementById("slider_Pan_id")
+        show_slider_Pan.innerHTML = slider_Pan.value;
+
+        let slider_Pan_send_rslt = "";
+
+        var myTmr;
+        var myTmr_Interval = 500;
+
+        var myTmr_PanCtr;
+        var myTmr_PanCtr_Interval = 200;
+        var myTmr_PanCtr_Start = 1;
+        var myTmr_PanCtr_Send = 0;
+
+        var onmousedown_stat = 0;
+
+        let btn_commands_rslt = "";
+
+        var join_TM = 0;
+
+        slider_pwm_Speed.oninput = function () {
+            show_slider_pwm_Speed.innerHTML = slider_pwm_Speed.value;
+            let slider_pwm_Speed_send = "SS," + slider_pwm_Speed.value;
+            send_cmd(slider_pwm_Speed_send);
+        }
+
+        slider_pwm_LED.oninput = function () {
+            show_slider_pwm_LED.innerHTML = slider_pwm_LED.value;
+            let slider_pwm_LED_send = "SL," + slider_pwm_LED.value;
+            send_cmd(slider_pwm_LED_send);
+        }
+
+        slider_Pan.oninput = function () {
+            show_slider_Pan.innerHTML = slider_Pan.value;
+            let slider_Pan_send = "SP," + slider_Pan.value;
+            slider_Pan_send_rslt = slider_Pan_send;
+            myTmr_PanCtr_Send = 1;
+            if (myTmr_PanCtr_Start == 1) {
+                myTmr_PanCtr = setInterval(myTimer_PanCtr, myTmr_PanCtr_Interval);
+                myTmr_PanCtr_Start = 0;
+            }
+        }
+
+        slider_Pan.onchange = function () {
+            myTmr_PanCtr_Start = 1;
+        }
+
+        function button_onmousedown_handle(cmds) {
+            clearInterval(myTmr);
+            btn_commands_rslt = cmds.substring(0, 1);
+            if (join_TM == 0) {
+                if (onmousedown_stat == 0) {
+                    send_btn_cmd(btn_commands_rslt);
+                    onmousedown_stat = 1;
+                }
+            }
+        }
+
+        function button_ontouchstart_handle(cmds) {
+            clearInterval(myTmr);
+            join_TM = 1;
+            btn_commands_rslt = cmds.substring(0, 1);
+            if (onmousedown_stat == 0) {
+                send_btn_cmd(btn_commands_rslt);
+                onmousedown_stat = 1;
+            }
+        }
+
+        function button_onmouseup_handle() {
+            if (join_TM == 0) {
+                onmousedown_stat = 0;
+                send_btn_cmd("S");
+                myTmr = setInterval(myTimer, myTmr_Interval);
+            }
+        }
+
+        function button_ontouchend_handle() {
+            join_TM = 1;
+            onmousedown_stat = 0;
+            send_btn_cmd("S");
+            myTmr = setInterval(myTimer, myTmr_Interval);
+        }
+
+        function myTimer() {
+            send_btn_cmd("S");
+            clearInterval(myTmr);
+        }
+
+        function myTimer_PanCtr() {
+            if (myTmr_PanCtr_Send == 1) {
+                send_cmd(slider_Pan_send_rslt);
+                if (myTmr_PanCtr_Start == 1) clearInterval(myTmr_PanCtr);
+                myTmr_PanCtr_Send = 0;
+            }
+        }
+
+        function send_btn_cmd(cmds) {
+            let btn_cmd = "B," + cmds;
+            send_cmd(btn_cmd);
+        }
+
+        function send_cmd(cmds) {
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", "/action?go=" + cmds, true);
+            xhr.send();
+        }
+
+        // Function to Send Sensor Data to the Web Server
+        function dataCollector() {
+          const url = 'http://192.168.1.1:80/data';
+
+          setInterval(() => {
+              fetch(url)
+                  .then(response => response.json())
+                  .then(data => {
+                      document.getElementById("temperature").innerHTML = data.sensor1;
+                      document.getElementById("humidity").innerHTML = data.sensor2;
+                      document.getElementById("co2").innerHTML = data.sensor3;
+                      document.getElementById("lpg").innerHTML = data.sensor4;
+                      document.getElementById("pressure").innerHTML = data.sensor5;
+                  })
+                  .catch(error => {
+                      console.error('Error:', error);
+                  });
+          }, 1000);
+      }
+
+      dataCollector();
+
+    </script>
+
+</body>
+
+</html>
